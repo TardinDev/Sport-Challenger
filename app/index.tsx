@@ -283,7 +283,7 @@ export default function HomeScreen() {
               onPress={() => {
                 console.log('Button pressed');
               }}>
-              <Text className="text-lg font-bold text-black">Challenge</Text>
+              <Text className="text-lg font-bold text-black">Entrer</Text>
             </Pressable>
           </View>
         </SafeAreaView>
