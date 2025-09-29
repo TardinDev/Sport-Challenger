@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -147,23 +147,90 @@ function EventCard({
   );
 }
 
+function BackgroundCard({
+  item,
+  index,
+  scrollX,
+}: {
+  item: EventCardType;
+  index: number;
+  scrollX: Animated.Value;
+}) {
+  const inputRange = [
+    (index - 2) * STEP,
+    (index - 1) * STEP,
+    index * STEP,
+    (index + 1) * STEP,
+    (index + 2) * STEP,
+  ];
+
+  const opacity = scrollX.interpolate({
+    inputRange,
+    outputRange: [0, 0.5, 0.8, 0.5, 0],
+    extrapolate: 'clamp',
+  });
+
+  const scale = scrollX.interpolate({
+    inputRange,
+    outputRange: [1.1, 1.2, 1.3, 1.2, 1.1],
+    extrapolate: 'clamp',
+  });
+
+  return (
+    <Animated.View
+      style={[
+        StyleSheet.absoluteFillObject,
+        {
+          opacity,
+        },
+      ]}>
+      <Animated.Image
+        source={item.image}
+        style={{
+          width: '100%',
+          height: '100%',
+          transform: [{ scale }],
+        }}
+        blurRadius={6}
+        resizeMode="cover"
+      />
+    </Animated.View>
+  );
+}
+
 export default function HomeScreen() {
   const listRef = useRef<FlatList>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
+  const [bgColors, setBgColors] = useState(eventsData[0].colors);
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-    { useNativeDriver: true } // Only natively animatable props
+    {
+      useNativeDriver: true,
+      listener: (event: any) => {
+        const offsetX = event.nativeEvent.contentOffset.x;
+        const index = Math.round(offsetX / STEP);
+        if (eventsData[index]) {
+          setBgColors(eventsData[index].colors);
+        }
+      }
+    }
   );
 
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View className="flex-1 bg-black">
+        {/* Animated background images */}
+        {eventsData.map((item, index) => (
+          <BackgroundCard key={item.id} item={item} index={index} scrollX={scrollX} />
+        ))}
+
+        {/* Gradient overlay - very transparent */}
         <LinearGradient
-          colors={['#1a1a1a', '#0b0b0b']}
-          start={{ x: 0.2, y: 0 }}
-          end={{ x: 0.8, y: 1 }}
+          colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
           style={StyleSheet.absoluteFillObject}
         />
         <SafeAreaView className="flex-1">
