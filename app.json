@@ -3,13 +3,13 @@
     "name": "sportChallenger",
     "slug": "sportChallenger",
     "version": "1.0.0",
-    "scheme": "sportChallenger",
+    "scheme": "sportchallenger",
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router", "expo-web-browser"],
+    "plugins": ["expo-router", "expo-web-browser", "expo-font", "expo-splash-screen"],
     "experiments": {
       "typedRoutes": true,
       "tsconfigPaths": true
@@ -20,16 +20,28 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#1e3c72"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.sportChallenger",
+      "splash": {
+        "image": "./assets/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#1e3c72"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "package": "com.anonymous.sportChallenger",
+      "splash": {
+        "image": "./assets/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#1e3c72"
       }
     }
   }

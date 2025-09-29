@@ -1,0 +1,100 @@
+<svg width="1242" height="2688" viewBox="0 0 1242 2688" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with sport theme gradient -->
+  <defs>
+    <linearGradient id="sportGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3c72;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2a5298;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.1);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:1" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1242" height="2688" fill="url(#sportGradient)"/>
+  <rect width="1242" height="2688" fill="url(#centerGlow)"/>
+
+  <!-- Main logo container -->
+  <g transform="translate(621, 1200)">
+    <!-- Outer circle background -->
+    <circle cx="0" cy="0" r="120" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+
+    <!-- Trophy/Award icon -->
+    <g transform="translate(0, -20)">
+      <!-- Trophy base -->
+      <rect x="-20" y="50" width="40" height="25" fill="#FFD700" rx="3"/>
+      <rect x="-35" y="70" width="70" height="12" fill="#FFA500" rx="6"/>
+
+      <!-- Trophy cup main body -->
+      <path d="M -35 -10 L -35 45 Q -35 60 -20 60 L 20 60 Q 35 60 35 45 L 35 -10 Z" fill="#E8F4FD" stroke="#B0BEC5" stroke-width="2"/>
+
+      <!-- Trophy handles -->
+      <ellipse cx="-50" cy="15" rx="12" ry="20" fill="none" stroke="#FFD700" stroke-width="5"/>
+      <ellipse cx="50" cy="15" rx="12" ry="20" fill="none" stroke="#FFD700" stroke-width="5"/>
+
+      <!-- Trophy rim -->
+      <rect x="-35" y="-15" width="70" height="10" fill="#FFD700" rx="5"/>
+
+      <!-- Inner shine -->
+      <ellipse cx="-15" cy="15" rx="12" ry="18" fill="rgba(255,255,255,0.4)"/>
+
+      <!-- Star decoration on trophy -->
+      <g transform="translate(0, 20) scale(0.8)">
+        <path d="M0,-8 L2.4,-2.4 L8,0 L2.4,2.4 L0,8 L-2.4,2.4 L-8,0 L-2.4,-2.4 Z" fill="#FFD700"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- App title -->
+  <text x="621" y="1450" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" letter-spacing="2px">
+    SPORT CHALLENGER
+  </text>
+
+  <!-- Subtitle -->
+  <text x="621" y="1500" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="rgba(255,255,255,0.8)" letter-spacing="1px">
+    Push Your Limits Every Day
+  </text>
+
+  <!-- Decorative sport elements -->
+  <!-- Running track lines -->
+  <g opacity="0.1">
+    <rect x="100" y="1600" width="1042" height="4" fill="white"/>
+    <rect x="100" y="1620" width="1042" height="4" fill="white"/>
+    <rect x="100" y="1640" width="1042" height="4" fill="white"/>
+  </g>
+
+  <!-- Floating sport icons -->
+  <g opacity="0.15" fill="white">
+    <!-- Dumbbell -->
+    <g transform="translate(200, 800) scale(0.8)">
+      <rect x="-25" y="-3" width="50" height="6" rx="3"/>
+      <circle cx="-25" cy="0" r="8"/>
+      <circle cx="25" cy="0" r="8"/>
+    </g>
+
+    <!-- Medal -->
+    <g transform="translate(1000, 900) scale(0.6)">
+      <circle cx="0" cy="0" r="15" stroke="white" stroke-width="2" fill="none"/>
+      <path d="M-5,-20 L5,-20 L0,0 Z" fill="white"/>
+    </g>
+
+    <!-- Stopwatch -->
+    <g transform="translate(150, 1800) scale(0.7)">
+      <circle cx="0" cy="0" r="12" stroke="white" stroke-width="2" fill="none"/>
+      <line x1="0" y1="-8" x2="0" y2="0" stroke="white" stroke-width="2"/>
+      <line x1="0" y1="0" x2="6" y2="0" stroke="white" stroke-width="2"/>
+    </g>
+
+    <!-- Target -->
+    <g transform="translate(1050, 1700) scale(0.6)">
+      <circle cx="0" cy="0" r="15" stroke="white" stroke-width="2" fill="none"/>
+      <circle cx="0" cy="0" r="10" stroke="white" stroke-width="1" fill="none"/>
+      <circle cx="0" cy="0" r="5" stroke="white" stroke-width="1" fill="none"/>
+    </g>
+  </g>
+
+  <!-- Bottom accent -->
+  <rect x="0" y="2550" width="1242" height="4" fill="rgba(255,255,255,0.2)"/>
+</svg>
