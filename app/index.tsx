@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { eventsData, type EventCardType } from '~/data/events';
 
 const { width } = Dimensions.get('window');
@@ -281,7 +281,7 @@ export default function HomeScreen() {
               }}
               className="items-center justify-center"
               onPress={() => {
-                console.log('Button pressed');
+                router.push('/sports');
               }}>
               <Text className="text-lg font-bold text-black">Entrer</Text>
             </Pressable>
