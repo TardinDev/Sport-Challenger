@@ -242,9 +242,11 @@ function BlinkingLive() {
 function ChallengeCard({
   item,
   onViewLive,
+  onAcceptChallenge,
 }: {
   item: ChallengeType;
   onViewLive: (id: string) => void;
+  onAcceptChallenge: (id: string) => void;
 }) {
   const difficultyColors = {
     Facile: '#4ade80',
@@ -333,28 +335,38 @@ function ChallengeCard({
         </View>
         <View
           style={{
-            backgroundColor: difficultyColors[item.difficulty] + '30',
+            backgroundColor: 'rgba(255,255,255,0.1)',
             paddingHorizontal: 10,
             paddingVertical: 6,
             borderRadius: 10,
           }}>
-          <Text style={{ fontSize: 12, color: difficultyColors[item.difficulty], fontWeight: '600' }}>
-            {item.difficulty}
+          <Text style={{ fontSize: 12, color: 'white' }}>
+            👥 {item.participants}/{item.maxParticipants}
           </Text>
         </View>
       </View>
 
-      {/* Bottom row: participants and creator */}
+      {/* Bottom row: creator and action buttons */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
-            👥 {item.participants}/{item.maxParticipants}
-          </Text>
-          <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginLeft: 12 }}>
+        <Pressable onPress={() => router.push(`/user/${item.id}`)}>
+          <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', textDecorationLine: 'underline' }}>
             Par {item.creator}
           </Text>
-        </View>
+        </Pressable>
 
+        {/* Accept button - only show for upcoming challenges */}
+        {item.status === 'À venir' && (
+          <Pressable
+            onPress={() => onAcceptChallenge(item.id)}
+            style={{
+              backgroundColor: 'rgba(34, 197, 94, 0.2)',
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 12,
+            }}>
+            <Text style={{ color: '#22c55e', fontSize: 13, fontWeight: '600' }}>✓ Accepter</Text>
+          </Pressable>
+        )}
       </View>
     </Pressable>
   );
@@ -423,6 +435,57 @@ export default function SportDetailScreen() {
     } else {
       Alert.alert('Match en cours', `Le match "${challenge?.title}" est en cours mais pas diffusé.`);
     }
+  };
+
+  const handleAcceptChallenge = (challengeId: string) => {
+    const challenge = challenges.find((c) => c.id === challengeId);
+    if (!challenge) return;
+
+    if (challenge.participants >= challenge.maxParticipants) {
+      Alert.alert('Challenge complet', 'Ce challenge a atteint le nombre maximum de participants.');
+      return;
+    }
+
+    Alert.alert(
+      'Accepter le challenge',
+      `Voulez-vous participer au challenge "${challenge.title}" ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Accepter',
+          onPress: () => {
+            setChallenges(
+              challenges.map((c) =>
+                c.id === challengeId
+                  ? { ...c, participants: c.participants + 1 }
+                  : c
+              )
+            );
+            Alert.alert('Confirmé !', 'Vous avez rejoint le challenge avec succès !');
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeclineChallenge = (challengeId: string) => {
+    const challenge = challenges.find((c) => c.id === challengeId);
+    if (!challenge) return;
+
+    Alert.alert(
+      'Refuser le challenge',
+      `Êtes-vous sûr de vouloir refuser le challenge "${challenge.title}" ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Refuser',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert('Challenge refusé', 'Vous avez refusé ce challenge.');
+          },
+        },
+      ]
+    );
   };
 
   const handleCreateChallenge = () => {
@@ -626,7 +689,13 @@ export default function SportDetailScreen() {
               paddingBottom: 32,
             }}
             showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => <ChallengeCard item={item} onViewLive={handleViewLive} />}
+            renderItem={({ item }) => (
+              <ChallengeCard
+                item={item}
+                onViewLive={handleViewLive}
+                onAcceptChallenge={handleAcceptChallenge}
+              />
+            )}
             ListEmptyComponent={
               <View style={{ alignItems: 'center', paddingTop: 40 }}>
                 <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16 }}>

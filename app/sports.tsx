@@ -233,7 +233,7 @@ export default function SportsScreen() {
 
               {/* Profile */}
               <Pressable
-                onPress={() => console.log('Go to profile')}
+                onPress={() => router.push('/profile')}
                 style={{
                   width: 48,
                   height: 48,
