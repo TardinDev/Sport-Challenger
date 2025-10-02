@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   Modal,
   ImageBackground,
   Alert,
+  ScrollView,
+  Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,6 +18,7 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 
 type ChallengeType = {
   id: string;
+  challengeNumber: string;
   title: string;
   description: string;
   date: string;
@@ -24,12 +27,90 @@ type ChallengeType = {
   maxParticipants: number;
   creator: string;
   difficulty: 'Facile' | 'Moyen' | 'Difficile';
-  status: 'Ouvert' | 'Complet' | 'Terminé';
+  status: 'En cours' | 'À venir' | 'Terminé' | 'Annulé';
+  isLive?: boolean;
+};
+
+const sportsData: Record<
+  string,
+  { name: string; colors: string[]; image: { uri: string } }
+> = {
+  '1': {
+    name: 'Basketball',
+    colors: ['#1a1a2e', '#0f3460'],
+    image: {
+      uri: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=1200&h=800&fit=crop',
+    },
+  },
+  '2': {
+    name: 'Football',
+    colors: ['#1b4332', '#2d6a4f'],
+    image: {
+      uri: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1200&h=800&fit=crop',
+    },
+  },
+  '3': {
+    name: 'Handball',
+    colors: ['#1e3a5f', '#2a5a8a'],
+    image: {
+      uri: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=1200&h=800&fit=crop',
+    },
+  },
+  '4': {
+    name: 'Tennis',
+    colors: ['#1a472a', '#2c6b3f'],
+    image: {
+      uri: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1200&h=800&fit=crop',
+    },
+  },
+  '5': {
+    name: 'Rugby',
+    colors: ['#1b3a2f', '#2e5c4a'],
+    image: {
+      uri: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=1200&h=800&fit=crop',
+    },
+  },
+  '6': {
+    name: 'Volleyball',
+    colors: ['#2b1d4e', '#4a3572'],
+    image: {
+      uri: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=1200&h=800&fit=crop',
+    },
+  },
+  '7': {
+    name: 'Athlétisme',
+    colors: ['#1a1f3a', '#2d3561'],
+    image: {
+      uri: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=1200&h=800&fit=crop',
+    },
+  },
+  '8': {
+    name: 'Boxe',
+    colors: ['#2b0d0d', '#4a1616'],
+    image: {
+      uri: 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=1200&h=800&fit=crop',
+    },
+  },
+  '9': {
+    name: 'Natation',
+    colors: ['#0d1f2d', '#1a3a4f'],
+    image: {
+      uri: 'https://images.unsplash.com/photo-1519315901367-f34ff9154487?w=1200&h=800&fit=crop',
+    },
+  },
+  '10': {
+    name: 'Badminton',
+    colors: ['#1d2d1a', '#354d2f'],
+    image: {
+      uri: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=1200&h=800&fit=crop',
+    },
+  },
 };
 
 const mockChallenges: ChallengeType[] = [
   {
     id: '1',
+    challengeNumber: '#CH-2024-001',
     title: 'Match 3 contre 3',
     description: 'Venez affronter les meilleurs joueurs de la ville',
     date: "Aujourd'hui, 18h00",
@@ -38,10 +119,12 @@ const mockChallenges: ChallengeType[] = [
     maxParticipants: 6,
     creator: 'Marc D.',
     difficulty: 'Moyen',
-    status: 'Ouvert',
+    status: 'En cours',
+    isLive: true,
   },
   {
     id: '2',
+    challengeNumber: '#CH-2024-002',
     title: 'Tournoi du Weekend',
     description: 'Tournoi amical, tous niveaux acceptés',
     date: 'Samedi, 14h00',
@@ -50,10 +133,12 @@ const mockChallenges: ChallengeType[] = [
     maxParticipants: 16,
     creator: 'Sophie L.',
     difficulty: 'Facile',
-    status: 'Ouvert',
+    status: 'À venir',
+    isLive: false,
   },
   {
     id: '3',
+    challengeNumber: '#CH-2024-003',
     title: 'Finale Championnat',
     description: 'Grande finale du championnat régional',
     date: 'Dimanche, 16h00',
@@ -62,10 +147,12 @@ const mockChallenges: ChallengeType[] = [
     maxParticipants: 20,
     creator: 'Thomas K.',
     difficulty: 'Difficile',
-    status: 'Complet',
+    status: 'Terminé',
+    isLive: false,
   },
   {
     id: '4',
+    challengeNumber: '#CH-2024-004',
     title: 'Entraînement intensif',
     description: 'Session pour améliorer vos compétences',
     date: 'Mercredi, 19h00',
@@ -74,16 +161,90 @@ const mockChallenges: ChallengeType[] = [
     maxParticipants: 10,
     creator: 'Julie M.',
     difficulty: 'Difficile',
-    status: 'Ouvert',
+    status: 'En cours',
+    isLive: true,
+  },
+  {
+    id: '5',
+    challengeNumber: '#CH-2024-005',
+    title: 'Défi marathon',
+    description: 'Courir ensemble pour battre des records',
+    date: 'Vendredi, 07h00',
+    location: 'Parc Central',
+    participants: 15,
+    maxParticipants: 30,
+    creator: 'Paul R.',
+    difficulty: 'Difficile',
+    status: 'À venir',
+    isLive: false,
+  },
+  {
+    id: '6',
+    challengeNumber: '#CH-2024-006',
+    title: 'Match amical débutants',
+    description: 'Pour ceux qui commencent, ambiance conviviale',
+    date: 'Lundi, 20h00',
+    location: 'Terrain de quartier',
+    participants: 6,
+    maxParticipants: 10,
+    creator: 'Emma B.',
+    difficulty: 'Facile',
+    status: 'À venir',
+    isLive: false,
+  },
+  {
+    id: '7',
+    challengeNumber: '#CH-2024-007',
+    title: 'Compétition annulée',
+    description: 'Match annulé en raison des conditions météo',
+    date: 'Hier, 15h00',
+    location: 'Stade Ouest',
+    participants: 0,
+    maxParticipants: 12,
+    creator: 'Alex M.',
+    difficulty: 'Moyen',
+    status: 'Annulé',
+    isLive: false,
   },
 ];
 
+function BlinkingLive() {
+  const blinkAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const blink = Animated.loop(
+      Animated.sequence([
+        Animated.timing(blinkAnim, {
+          toValue: 0.3,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(blinkAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    blink.start();
+
+    return () => blink.stop();
+  }, [blinkAnim]);
+
+  return (
+    <Animated.View style={{ opacity: blinkAnim, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+      <Text style={{ fontSize: 14 }}>📹</Text>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: 'white' }}>LIVE</Text>
+    </Animated.View>
+  );
+}
+
 function ChallengeCard({
   item,
-  onDelete,
+  onViewLive,
 }: {
   item: ChallengeType;
-  onDelete: (id: string) => void;
+  onViewLive: (id: string) => void;
 }) {
   const difficultyColors = {
     Facile: '#4ade80',
@@ -92,22 +253,30 @@ function ChallengeCard({
   };
 
   const statusColors = {
-    Ouvert: '#10b981',
-    Complet: '#f59e0b',
-    Terminé: '#6b7280',
+    'En cours': '#10b981',
+    'À venir': '#3b82f6',
+    'Terminé': '#6b7280',
+    'Annulé': '#ef4444',
   };
 
   return (
     <Pressable
-      onPress={() => console.log(`Challenge ${item.id} selected`)}
+      onPress={() => console.log(`Challenge ${item.challengeNumber} selected`)}
       style={{
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: 'rgba(0,0,0,0.3)',
         borderRadius: 20,
         padding: 16,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: 'rgba(255,255,255,0.2)',
       }}>
+      {/* Challenge Number */}
+      <View style={{ marginBottom: 8 }}>
+        <Text style={{ fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.5)' }}>
+          {item.challengeNumber}
+        </Text>
+      </View>
+
       {/* Header with title and status */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
         <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'white', flex: 1 }}>
@@ -119,8 +288,17 @@ function ChallengeCard({
             paddingHorizontal: 10,
             paddingVertical: 4,
             borderRadius: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
           }}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: 'white' }}>{item.status}</Text>
+          {item.status === 'En cours' && item.isLive ? (
+            <BlinkingLive />
+          ) : (
+            <Text style={{ fontSize: 11, fontWeight: '700', color: 'white' }}>
+              {item.status}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -168,7 +346,7 @@ function ChallengeCard({
 
       {/* Bottom row: participants and creator */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
           <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
             👥 {item.participants}/{item.maxParticipants}
           </Text>
@@ -177,16 +355,6 @@ function ChallengeCard({
           </Text>
         </View>
 
-        {/* Delete button */}
-        <Pressable
-          onPress={() => onDelete(item.id)}
-          style={{
-            backgroundColor: 'rgba(239, 68, 68, 0.2)',
-            padding: 8,
-            borderRadius: 8,
-          }}>
-          <Text style={{ color: '#ef4444', fontSize: 12, fontWeight: '600' }}>🗑️ Supprimer</Text>
-        </Pressable>
       </View>
     </Pressable>
   );
@@ -197,6 +365,9 @@ export default function SportDetailScreen() {
   const [challenges, setChallenges] = useState(mockChallenges);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<
+    'Tous' | 'En cours' | 'À venir' | 'Terminé' | 'Annulé'
+  >('Tous');
   const [newChallenge, setNewChallenge] = useState({
     title: '',
     description: '',
@@ -206,30 +377,52 @@ export default function SportDetailScreen() {
     difficulty: 'Moyen' as 'Facile' | 'Moyen' | 'Difficile',
   });
 
-  const sportName = 'Basketball'; // TODO: Get from sport data based on id
+  const sportId = Array.isArray(id) ? id[0] : id || '1';
+  const sport = sportsData[sportId] || {
+    name: 'Basketball',
+    colors: ['#1a1a2e', '#0f3460'],
+    image: {
+      uri: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=1200&h=800&fit=crop',
+    },
+  };
 
-  const filteredChallenges = challenges.filter(
-    (challenge) =>
+  const filteredChallenges = challenges.filter((challenge) => {
+    const matchesSearch =
       challenge.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       challenge.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      challenge.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      challenge.location.toLowerCase().includes(searchQuery.toLowerCase());
 
-  const handleDelete = (challengeId: string) => {
-    Alert.alert(
-      'Supprimer le challenge',
-      'Êtes-vous sûr de vouloir supprimer ce challenge ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Supprimer',
-          style: 'destructive',
-          onPress: () => {
-            setChallenges(challenges.filter((c) => c.id !== challengeId));
+    const matchesFilter = selectedFilter === 'Tous' || challenge.status === selectedFilter;
+
+    return matchesSearch && matchesFilter;
+  });
+
+  const challengesByStatus = {
+    'En cours': challenges.filter((c) => c.status === 'En cours'),
+    'À venir': challenges.filter((c) => c.status === 'À venir'),
+    'Terminé': challenges.filter((c) => c.status === 'Terminé'),
+  };
+
+  const handleViewLive = (challengeId: string) => {
+    const challenge = challenges.find((c) => c.id === challengeId);
+    if (challenge?.isLive) {
+      Alert.alert(
+        'Match en direct',
+        `Le match "${challenge.title}" est en cours de diffusion !`,
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Regarder',
+            onPress: () => {
+              console.log('Navigate to live stream for challenge:', challengeId);
+              // TODO: Navigate to live stream screen
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    } else {
+      Alert.alert('Match en cours', `Le match "${challenge?.title}" est en cours mais pas diffusé.`);
+    }
   };
 
   const handleCreateChallenge = () => {
@@ -238,8 +431,11 @@ export default function SportDetailScreen() {
       return;
     }
 
+    const challengeNumber = `#CH-2024-${String(challenges.length + 1).padStart(3, '0')}`;
+
     const challenge: ChallengeType = {
       id: Date.now().toString(),
+      challengeNumber: challengeNumber,
       title: newChallenge.title,
       description: newChallenge.description,
       date: newChallenge.date,
@@ -248,7 +444,8 @@ export default function SportDetailScreen() {
       maxParticipants: parseInt(newChallenge.maxParticipants) || 10,
       creator: 'Moi',
       difficulty: newChallenge.difficulty,
-      status: 'Ouvert',
+      status: 'À venir',
+      isLive: false,
     };
 
     setChallenges([challenge, ...challenges]);
@@ -267,12 +464,19 @@ export default function SportDetailScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View className="flex-1 bg-black">
-        <LinearGradient
-          colors={['#1a1a2e', '#0f0f0f', '#000000']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
-        />
+        {/* Background Image with Blur */}
+        <ImageBackground
+          source={sport.image}
+          resizeMode="cover"
+          blurRadius={3}
+          style={StyleSheet.absoluteFillObject}>
+          <LinearGradient
+            colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.75)', 'rgba(0,0,0,0.85)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
+          />
+        </ImageBackground>
 
         <SafeAreaView className="flex-1">
           {/* Header */}
@@ -281,14 +485,93 @@ export default function SportDetailScreen() {
               <Pressable onPress={() => router.back()}>
                 <Text className="text-lg text-white/70">← Retour</Text>
               </Pressable>
-              <Text className="text-2xl font-bold text-white">{sportName}</Text>
+              <Text className="text-2xl font-bold text-white">{sport.name}</Text>
               <View style={{ width: 60 }} />
             </View>
+
+            {/* Stats Section */}
+            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: 'rgba(255,255,255,0.15)',
+                  borderRadius: 16,
+                  padding: 12,
+                  alignItems: 'center',
+                }}>
+                <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>
+                  {challengesByStatus['En cours'].length}
+                </Text>
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 4 }}>
+                  En cours
+                </Text>
+              </View>
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: 'rgba(255,255,255,0.15)',
+                  borderRadius: 16,
+                  padding: 12,
+                  alignItems: 'center',
+                }}>
+                <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>
+                  {challengesByStatus['À venir'].length}
+                </Text>
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 4 }}>
+                  À venir
+                </Text>
+              </View>
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: 'rgba(255,255,255,0.15)',
+                  borderRadius: 16,
+                  padding: 12,
+                  alignItems: 'center',
+                }}>
+                <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>
+                  {challengesByStatus['Terminé'].length}
+                </Text>
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 4 }}>
+                  Terminés
+                </Text>
+              </View>
+            </View>
+
+            {/* Filters */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ marginBottom: 16 }}>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {(['Tous', 'En cours', 'À venir', 'Terminé', 'Annulé'] as const).map((filter) => (
+                  <Pressable
+                    key={filter}
+                    onPress={() => setSelectedFilter(filter)}
+                    style={{
+                      backgroundColor:
+                        selectedFilter === filter ? 'white' : 'rgba(255,255,255,0.2)',
+                      paddingHorizontal: 16,
+                      paddingVertical: 10,
+                      borderRadius: 20,
+                    }}>
+                    <Text
+                      style={{
+                        color: selectedFilter === filter ? 'black' : 'white',
+                        fontWeight: '600',
+                        fontSize: 14,
+                      }}>
+                      {filter}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
 
             {/* Search Bar */}
             <View
               style={{
-                backgroundColor: 'rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(255,255,255,0.15)',
                 borderRadius: 16,
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -310,10 +593,10 @@ export default function SportDetailScreen() {
               />
             </View>
 
-            {/* Stats and Create Button */}
+            {/* Results count and Create Button */}
             <View className="flex-row items-center justify-between">
               <Text className="text-sm text-white/70">
-                {filteredChallenges.length} challenge(s) disponible(s)
+                {filteredChallenges.length} challenge(s)
               </Text>
               <Pressable
                 onPress={() => setModalVisible(true)}
@@ -343,7 +626,7 @@ export default function SportDetailScreen() {
               paddingBottom: 32,
             }}
             showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => <ChallengeCard item={item} onDelete={handleDelete} />}
+            renderItem={({ item }) => <ChallengeCard item={item} onViewLive={handleViewLive} />}
             ListEmptyComponent={
               <View style={{ alignItems: 'center', paddingTop: 40 }}>
                 <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16 }}>

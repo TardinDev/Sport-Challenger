@@ -130,7 +130,7 @@ const { width } = Dimensions.get('window');
 function SportCard({ item }: { item: SportCardType }) {
   return (
     <Pressable
-      onPress={() => console.log(`Sport ${item.name} selected`)}
+      onPress={() => router.push(`/sport/${item.id}`)}
       style={{ marginBottom: 16 }}>
       <View
         style={{
